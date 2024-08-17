@@ -4,7 +4,7 @@
 
 [ssine/pptx2md](https://github.com/ssine/pptx2md)を改造しています。
 
-* 使用方法
+## 使用方法
 '''
 python -m pptx2aituberkitscript <pptxスライドのパス>
 '''
@@ -15,7 +15,7 @@ tegnikeさんが作成したtheme.cssを一緒に生成しています。
 
 現状、レイアウトとしてはpptxの「スライド タイトル」のみ対応しています（日本語PowerPointで生成した場合のレイアウト名）。
 
-* 制限
+## 制限
 ・テーブルは変換できますが、AITuberKitでは表として表示されません。
 ・画像のサイズ調整等は後からする必要があります。
 ・スライドマスターの画像などは変換されません。
