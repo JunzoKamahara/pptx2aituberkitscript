@@ -2,10 +2,11 @@
 
 このプログラムは、PowerPointのpptxをtegnikeさんのAITuberKitのスライドモードに対応したデータに変換します。pptxの各スライドのノートに記述した内容をアバターがしゃべるようにscripts.jsonを出力します。
 
-[ssine/pptx2md](https://github.com/ssine/pptx2md)を改造しています。
+[ssine/pptx2md](https://github.com/ssine/pptx2md)を改造しています。先にpptx2mdをpipでインストールすると必要なモジュールをインストールしてくれます。
 
 ## 使用方法
 ```
+pip install pptx2md
 python -m pptx2aituberkitscript <pptxスライドのパス>
 ```
 
