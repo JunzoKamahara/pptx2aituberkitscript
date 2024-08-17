@@ -7,6 +7,8 @@
 ## 使用方法
 ```
 pip install pptx2md
+git clone https://github.com/JunzoKamahara/pptx2aituberkitscript.git
+cd pptx2aituberkitscript
 python -m pptx2aituberkitscript <pptxスライドのパス>
 ```
 
