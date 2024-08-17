@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "pptx2md"
-version = "1.6.1"
+name = "pptx2aituberkitscript"
+version = "0.1.0"
 description = "This package converts pptx to markdown"
-repository = "https://github.com/ssine/pptx2md"
-authors = ["Liu Siyao <liu.siyao@qq.com>"]
+repository = "https://github.com/JunzoKamahara/pptx2aituberkitscript"
+authors = ["Junzo Kamahara <j.kamahara@gmail.com>"]
 license = "MIT Licence"
 
 [tool.poetry.scripts]
-pptx2md = "pptx2md.__main__:main"
+pptx2md = "pptx2aituberkitscript.__main__:main"
 
 [tool.poetry.dependencies]
 python = ">=3.7"

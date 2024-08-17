@@ -9,7 +9,7 @@ import numpy as np
 
 from operator import attrgetter
 
-from pptx2md.utils_optim import normal_pdf, f_gauss1, f_gauss2, f_gauss3, fit_column_model, compute_pdf_overlap
+from pptx2aituberkitscript.utils_optim import normal_pdf, f_gauss1, f_gauss2, f_gauss3, fit_column_model, compute_pdf_overlap
 
 
 

@@ -3,12 +3,13 @@ import collections.abc
 import os
 import sys
 from typing import Union
+from pptx2aituberkitscript.tools import copy_file
 
 from pptx import Presentation
 
-import pptx2md.outputter as outputter
-from pptx2md.global_var import g
-from pptx2md.parser import parse
+import pptx2aituberkitscript.outputter as outputter
+from pptx2aituberkitscript.global_var import g
+from pptx2aituberkitscript.parser import parse
 
 
 # initialization functions
@@ -33,39 +34,41 @@ def __prepare_titles(title_path):
 def convert(
     pptx_path: str,  # path to the pptx file to be converted
     title: Union[str, None] = None,  # path to the custom title list file
-    output: Union[str, None] = None,  # path of the output file
+    output_dir: Union[str, None] = None,  # path of the output file
     image_dir: Union[str, None] = None,  # where to put images extracted
     image_width: Union[int, None] = None,  # maximum image with in px
     disable_image: bool = False,  #  disable image extraction
     disable_wmf: bool = False,  # keep wmf formatted image untouched(avoid exceptions under linux)
     disable_color: bool = False,  # do not add color HTML tags
     disable_escaping: bool = False,  # do not attempt to escape special characters
-    disable_notes: bool = False,  # do not add presenter notes
     enable_slides: bool = False,  # add slide deliniation
-    wiki: bool = False,  # generate output as wikitext(TiddlyWiki)
-    mdk: bool = False,  # generate output as madoko markdown
     min_block_size: int = 15,  # the minimum character number of a text block to be converted
     page: Union[int, None] = None # only convert the specified page 
 ):
 
     file_path = pptx_path
     g.file_prefix = "".join(os.path.basename(file_path).split(".")[:-1])
+    g.output_dir = os.path.join(os.path.dirname(file_path), g.file_prefix)
 
     if title == str:
         g.use_custom_title
         __prepare_titles(title)
         g.use_custom_title = True
 
-    if wiki:
-        out_path = "out.tid"
-    else:
-        out_path = "out.md"
+    out_path = os.path.join(g.output_dir,"slides.md")
+    script_path = os.path.join(g.output_dir,'scripts.json')
 
-    if output:
-        out_path = output
+    if output_dir:
+        g.output_dir = output_dir
+        out_path = os.path.join(g.output_dir,out_path)
+        script_path = os.path.join(g.output_dir,script_path)
+
+    if os.path.exists(g.output_dir)==False:
+        os.makedirs(g.output_dir)
 
     g.out_path = os.path.abspath(out_path)
-    g.img_path = os.path.join(out_path, "../img")
+    g.script_path = os.path.abspath(script_path)
+    g.img_path = os.path.join(g.output_dir, "images")
 
     if image_dir:
         g.img_path = image_dir
@@ -98,15 +101,7 @@ def convert(
     else:
         g.disable_escaping = False
 
-    if disable_notes:
-        g.disable_notes = True
-    else:
-        g.disable_notes = False
-
-    if enable_slides:
-        g.enable_slides = True
-    else:
-        g.enable_slides = False
+    g.enable_slides = True # default to True
     if page is not None:
         g.page = page
 
@@ -115,10 +110,7 @@ def convert(
         print(f"absolute path: {os.path.abspath(file_path)}")
         sys.exit(1)
     prs = Presentation(file_path)
-    if wiki:
-        out = outputter.wiki_outputter(out_path)
-    elif mdk:
-        out = outputter.madoko_outputter(out_path)
-    else:
-        out = outputter.md_outputter(out_path)
+    out = outputter.md_outputter(out_path, script_path)
     parse(prs, out)
+    copy_file(os.path.join(os.path.abspath(__file__),'thema.css'), 
+                  os.path.join(g.output_dir, 'thema.css'))

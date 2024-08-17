@@ -25,3 +25,14 @@ def fix_null_rels(file_path):
   tgt = f'{file_path[:-5]}_purged.pptx'
   shutil.move(f'{tfn}.zip', tgt)
   return tgt
+
+def copy_file(source_path, destination_path):
+    # ソースファイルを読み込みモードで開く
+    with open(source_path, 'rb') as source_file:
+        # 内容を読み込む
+        file_content = source_file.read()
+    
+    # 宛先ファイルを書き込みモードで開く
+    with open(destination_path, 'wb') as destination_file:
+        # 内容を書き込む
+        destination_file.write(file_content)

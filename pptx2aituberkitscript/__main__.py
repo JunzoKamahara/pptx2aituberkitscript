@@ -1,13 +1,14 @@
 import collections 
 import collections.abc
 from pptx import Presentation
-from pptx2md.global_var import g
-import pptx2md.outputter as outputter
-from pptx2md.parser import parse, parse_alt
-from pptx2md.tools import fix_null_rels
+from pptx2aituberkitscript.global_var import g
+import pptx2aituberkitscript.outputter as outputter
+from pptx2aituberkitscript.parser import parse, parse_alt
+from pptx2aituberkitscript.tools import fix_null_rels
 import argparse
 import os, re
 import sys
+from pptx2aituberkitscript.tools import copy_file
 
 
 # initialization functions
@@ -30,10 +31,10 @@ def prepare_titles(title_path):
 
 
 def parse_args():
-  arg_parser = argparse.ArgumentParser(description='Convert pptx to markdown')
+  arg_parser = argparse.ArgumentParser(description='Convert pptx to markdown presentation for aituber kit')
   arg_parser.add_argument('pptx_path', help='path to the pptx file to be converted')
   arg_parser.add_argument('-t', '--title', help='path to the custom title list file')
-  arg_parser.add_argument('-o', '--output', help='path of the output file')
+  arg_parser.add_argument('-o', '--output-dir', help='path of the output directory')
   arg_parser.add_argument('-i', '--image-dir', help='where to put images extracted')
   arg_parser.add_argument('--image-width', help='maximum image with in px', type=int)
   arg_parser.add_argument('--disable-image', help='disable image extraction', action="store_true")
@@ -42,11 +43,6 @@ def parse_args():
                           action="store_true")
   arg_parser.add_argument('--disable-color', help='do not add color HTML tags', action="store_true")
   arg_parser.add_argument('--disable-escaping', help='do not attempt to escape special characters', action="store_true")
-  arg_parser.add_argument('--disable-notes', help='do not add presenter notes', action="store_true")
-  arg_parser.add_argument('--enable-slides', help='deliniate slides `\n---\n`', action="store_true")
-  arg_parser.add_argument('--wiki', help='generate output as wikitext(TiddlyWiki)', action="store_true")
-  arg_parser.add_argument('--mdk', help='generate output as madoko markdown', action="store_true")
-  arg_parser.add_argument('--qmd', help='generate output as quarto markdown presentation', action="store_true")
   arg_parser.add_argument('--min-block-size',
                           help='the minimum character number of a text block to be converted',
                           type=int,
@@ -60,24 +56,27 @@ def main():
 
   file_path = args.pptx_path
   g.file_prefix = ''.join(os.path.basename(file_path).split('.')[:-1])
+  g.output_dir = os.path.join(os.path.dirname(file_path), g.file_prefix)
 
   if args.title:
     g.use_custom_title
     prepare_titles(args.title)
     g.use_custom_title = True
 
-  if args.wiki:
-    out_path = 'out.tid'
-  elif args.qmd:
-    out_path = 'out.qmd'
-  else:
-    out_path = 'out.md'
+  out_path = os.path.join(g.output_dir,"slides.md")
+  script_path = os.path.join(g.output_dir,'scripts.json')
 
-  if args.output:
-    out_path = args.output
+  if args.output_dir:
+    g.output_dir = args.output_dir
+    out_path = os.path.join(g.output_dir,out_path)
+    script_path = os.path.join(g.output_dir,script_path)
+
+  if os.path.exists(g.output_dir)==False:
+    os.makedirs(g.output_dir)
 
   g.out_path = os.path.abspath(out_path)
-  g.img_path = os.path.join(out_path, '../img')
+  g.script_path = os.path.abspath(script_path)
+  g.img_path = os.path.join(g.output_dir, 'images')
 
   if args.image_dir:
     g.img_path = args.image_dir
@@ -110,15 +109,7 @@ def main():
   else:
     g.disable_escaping = False
 
-  if args.disable_notes:
-    g.disable_notes = True
-  else:
-    g.disable_notes = False
-
-  if args.enable_slides:
-    g.enable_slides = True
-  else:
-    g.enable_slides = False
+  g.enable_slides = True # default to True
 
   if args.page:
     g.page = args.page
@@ -142,20 +133,13 @@ def main():
     else:
       print('unknown error, please report this bug at https://github.com/ssine/pptx2md/issues')
       sys.exit(1)
-  if args.wiki:
-    out = outputter.wiki_outputter(out_path)
-  elif args.mdk:
-    out = outputter.madoko_outputter(out_path)
-  elif args.qmd:
-    out = outputter.quarto_outputter(out_path)
-  else:
-    out = outputter.md_outputter(out_path)
-  
-  if args.qmd:
-    parse_alt(prs, out)
-  else:
-    parse(prs, out)
 
+  out = outputter.md_outputter(out_path, script_path)
+  
+  parse(prs, out)
+
+  copy_file(os.path.join(os.path.abspath(os.path.dirname(__file__)),'theme.css'), 
+                  os.path.join(g.output_dir, 'theme.css'))
 
 if __name__ == '__main__':
   main()

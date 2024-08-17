@@ -15,20 +15,23 @@ from rapidfuzz import process as fuze_process
 from operator import attrgetter
 
 from tqdm import tqdm
-from pptx2md.global_var import g
-from pptx2md import global_var
+from pptx2aituberkitscript.global_var import g
+from pptx2aituberkitscript import global_var
 
-import pptx2md.outputter as outputter
+import pptx2aituberkitscript.outputter as outputter
 
-from pptx2md.columns import is_two_column_text, assign_shapes
+from pptx2aituberkitscript.columns import is_two_column_text, assign_shapes
 
-from pptx2md.utils_optim import normal_pdf, fit_column_model
+from pptx2aituberkitscript.utils_optim import normal_pdf, fit_column_model
 
 
 picture_count = 0
 
 global out
 
+def process_layout(slide):
+  if slide.slide_layout.name == 'タイトル スライド':
+    out.put_class('title')
 
 # pptx type defination rules
 def is_title(shape):
@@ -138,16 +141,9 @@ def process_text_block(shape, _):
   return []
 
 
-def process_notes(text, _):
+def process_notes(text, page_no):
   global out
-  if(isinstance(out, outputter.quarto_outputter)):
-    
-    out.put_para("::: {.notes}")
-    out.put_para(text)
-    out.put_para(":::")
-  else:
-    out.put_para('---')
-    out.put_para(text)
+  out.put_notes(page_no, text, '')
 
   return []
 
@@ -159,14 +155,15 @@ def process_picture(shape, slide_idx):
   global picture_count
   global out
 
-  pic_name = g.file_prefix + str(picture_count)
+  prefix = g.file_prefix
+  pic_name = 'presentation' + str(picture_count)
   pic_ext = shape.image.ext
   if not os.path.exists(g.img_path):
     os.makedirs(g.img_path)
 
   output_path = g.path_name_ext(g.img_path, pic_name, pic_ext)
   common_path = os.path.commonpath([g.out_path, g.img_path])
-  img_outputter_path = os.path.relpath(output_path, common_path)
+  img_outputter_path = '/slides/'+prefix+'/'+os.path.relpath(output_path, common_path)
   with open(output_path, 'wb') as f:
     f.write(shape.image.blob)
     picture_count += 1
@@ -254,6 +251,9 @@ def parse(prs, outputer):
   # for idx, slide in enumerate(prs.slides):
     if g.page is not None and idx + 1 != g.page:
         continue
+
+    process_layout(slide)
+
     shapes = []
     try:
       shapes = sorted(ungroup_shapes(slide.shapes), key=attrgetter('top', 'left'))
@@ -269,12 +269,13 @@ def parse(prs, outputer):
 
     process_shapes(shapes, idx + 1)
 
-    if not g.disable_notes and slide.has_notes_slide:
+    if slide.has_notes_slide:
       text = slide.notes_slide.notes_text_frame.text
       if text:
-        notes += process_notes(text, idx + 1)
+        notes += process_notes(text, idx)
     if idx < len(prs.slides)-1 and g.enable_slides:
         out.put_para("\n---\n")
+        out.put_script_comma()
   out.close()
 
   if len(notes) > 0:
@@ -377,7 +378,7 @@ def parse_alt(prs, outputer):
       notes.extend(process_shapes(shapes, idx))
 
 
-    if not g.disable_notes and slide.has_notes_slide:
+    if slide.has_notes_slide:
       text = slide.notes_slide.notes_text_frame.text
       if text:
         notes += process_notes(text, idx + 1)
