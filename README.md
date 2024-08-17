@@ -5,9 +5,9 @@
 [ssine/pptx2md](https://github.com/ssine/pptx2md)を改造しています。
 
 ## 使用方法
-'''
+```
 python -m pptx2aituberkitscript <pptxスライドのパス>
-'''
+```
 
 pptxスライド名から、pptx拡張子を除いたフォルダが作成されるので、そのフォルダをAITuberKitのpublic/slidesに移動させて、AITuberKitを起動して、設定画面からスライドモードをONにすると、先ほど移動させたスライド名が表示されるので、それを選択すると表示されるようになります。
 
